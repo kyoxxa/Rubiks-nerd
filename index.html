@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0c0f12" />
+<title>CUBIC — Self-solving 3D cube</title>
+<style>
+  :root{color-scheme:dark;--bg:#0c0f12;--panel:#12171b;--panel2:#171d21;--line:#252d32;--muted:#89969b;--text:#edf2ef;--lime:#c6f36a;--lime2:#d9ff8d;--orange:#ff875b;--green:#9de6b1;--red:#ff8e7e;--sans:Inter,"DM Sans",system-ui,-apple-system,Segoe UI,sans-serif;}
+  *{box-sizing:border-box} html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:var(--sans)} body{min-height:100vh;background-image:radial-gradient(ellipse at 48% 46%,rgba(96,123,116,.09),transparent 55%)} button{font:inherit;color:inherit} button:focus-visible{outline:2px solid var(--lime);outline-offset:3px} .app{max-width:1440px;margin:0 auto;padding:0 42px 40px}
+  .topbar{height:76px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:12px}.brand-mark{width:31px;height:31px;position:relative;display:grid;place-items:center;border:1px solid #59644d;transform:rotate(30deg);color:var(--lime);font-size:18px}.brand-mark:before,.brand-mark:after{content:"";position:absolute;background:#59644d}.brand-mark:before{height:1px;width:100%;top:50%;left:0}.brand-mark:after{width:1px;height:100%;left:50%;top:0}.brand-name{font-size:13px;letter-spacing:.19em;font-weight:800}.brand-name span{color:var(--lime)}.top-meta{display:flex;align-items:center;gap:18px;color:var(--muted);font-size:10px;letter-spacing:.12em;text-transform:uppercase}.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px #9de6b177;display:inline-block;margin-right:7px}
+  .intro{display:flex;justify-content:space-between;align-items:flex-end;padding:33px 0 25px;gap:24px}.eyebrow{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--lime);font-weight:700}.intro h1{font-size:clamp(28px,3.5vw,44px);letter-spacing:-.055em;line-height:1.05;margin:10px 0 8px;font-weight:650}.intro p{margin:0;color:#9ca7a9;font-size:13px;line-height:1.55}.spec-tag{white-space:nowrap;border:1px solid var(--line);color:#abb5b5;padding:9px 12px;font:10px ui-monospace,SFMono-Regular,monospace;letter-spacing:.06em;align-self:center}.spec-tag b{color:var(--lime);font-weight:600}
+  .workspace{display:grid;grid-template-columns:minmax(0,1fr) 316px;gap:16px;align-items:stretch}.stage,.rail{border:1px solid var(--line);background:rgba(18,23,27,.9)}.stage{min-width:0;display:flex;flex-direction:column;overflow:hidden}.stage-head{height:48px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 16px}.section-label{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:#a9b3b3;font-weight:700}.stage-head-left{display:flex;align-items:center;gap:11px}.tiny-divider{height:13px;width:1px;background:#354047}.mono{font:10px ui-monospace,SFMono-Regular,monospace;color:var(--muted)}.status{display:inline-flex;align-items:center;gap:7px;border:1px solid #31433a;padding:6px 9px;color:var(--green);font:9px ui-monospace,SFMono-Regular,monospace;letter-spacing:.1em}.status .dot{width:6px;height:6px;background:currentColor;border-radius:50%}.status.busy{border-color:#594b2d;color:#f4c66e}.status.unsolved{border-color:#3e4548;color:#abb5b5}.viewport{height:min(60vw,590px);min-height:390px;position:relative;background:radial-gradient(ellipse at 50% 53%,#1b2428 0%,#11171b 43%,#0e1215 75%);overflow:hidden;touch-action:none}.viewport canvas{display:block;width:100%;height:100%;cursor:grab;outline:none}.viewport canvas:active{cursor:grabbing}.viewport:after{content:"";pointer-events:none;position:absolute;inset:0;background:linear-gradient(180deg,rgba(7,9,11,.14),transparent 21%,transparent 76%,rgba(7,9,11,.34))}.stage-caption{position:absolute;z-index:1;left:16px;right:16px;bottom:15px;display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none}.caption-left{display:flex;flex-direction:column;gap:5px}.caption-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#dce5df}.caption-sub{font:9px ui-monospace,SFMono-Regular,monospace;color:#7d8a8d}.view-chip{border:1px solid #344044;background:#11171bbd;padding:7px 9px;color:#95a2a3;font:9px ui-monospace,SFMono-Regular,monospace;letter-spacing:.06em}
+  .rail{display:flex;flex-direction:column}.rail-section{padding:16px;border-bottom:1px solid var(--line)}.rail-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}.rail-title h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin:0;font-weight:700}.rail-title span{color:var(--muted);font:9px ui-monospace,SFMono-Regular,monospace}.primary-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.btn{min-height:40px;border:1px solid #394247;background:#1a2226;padding:0 11px;text-align:center;cursor:pointer;transition:background .16s,border-color .16s,transform .16s;color:#e8eeeb;font-size:11px;font-weight:650;letter-spacing:.015em}.btn:hover:not(:disabled){background:#242d30;border-color:#68736f}.btn:active:not(:disabled){transform:translateY(1px)}.btn:disabled{opacity:.45;cursor:not-allowed}.btn-accent{background:var(--lime);border-color:var(--lime);color:#11170d}.btn-accent:hover:not(:disabled){background:var(--lime2);border-color:var(--lime2)}.btn-solve{color:var(--lime);border-color:#66764f;background:#1a2118}.btn-solve:hover:not(:disabled){background:#252e1d;border-color:var(--lime)}.btn-reset{grid-column:1/-1;min-height:32px;background:transparent;color:#a3aeae;border-color:transparent;font-size:10px}.btn-reset:hover:not(:disabled){background:#1a2023;border-color:#313b3f}.button-label{display:flex;justify-content:center;align-items:center;gap:7px}.button-icon{font-size:13px;line-height:1}
+  .move-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.move-key{height:37px;border:1px solid #30393e;background:#151b1f;cursor:pointer;font:12px ui-monospace,SFMono-Regular,monospace;color:#e8eeeb;transition:.15s}.move-key small{display:block;font-size:9px;color:#849092;margin-top:2px}.move-key:hover:not(:disabled){border-color:var(--lime);color:var(--lime);background:#1b2218}.move-key:disabled{opacity:.45;cursor:not-allowed}.keyboard-hint{font-size:9px;color:#798688;line-height:1.5;margin:11px 0 0}.keyboard-hint kbd{font:9px ui-monospace,SFMono-Regular,monospace;color:#b9c3c1;border:1px solid #3c4649;padding:2px 4px;background:#151a1d}
+  .history-section{flex:1;min-height:114px}.history-meta{display:flex;align-items:center;justify-content:space-between}.count{color:var(--lime);font:11px ui-monospace,SFMono-Regular,monospace}.history-list{min-height:45px;display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px;padding-top:12px}.history-empty{font-size:10px;color:#758184;line-height:1.55}.move-chip{font:10px ui-monospace,SFMono-Regular,monospace;border:1px solid #344044;background:#171e21;padding:5px 7px;color:#bdc8c2}.move-chip.latest{border-color:#647748;color:var(--lime)}.build-spec{padding:14px 16px 16px;background:#101519}.build-spec summary{list-style:none;display:flex;justify-content:space-between;cursor:pointer;user-select:none;color:#a9b5b1;font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700}.build-spec summary::-webkit-details-marker{display:none}.build-spec summary:after{content:"+";color:var(--lime);font-size:13px}.build-spec[open] summary:after{content:"−"}.build-spec ul{padding:0 0 0 14px;margin:13px 0 0;color:#859192;font-size:10px;line-height:1.8}.build-spec li::marker{color:var(--lime)}.build-spec strong{color:#d2dad6;font-weight:550}
+  .bottom-note{display:flex;justify-content:space-between;gap:18px;padding:13px 2px 0;color:#758184;font:9px ui-monospace,SFMono-Regular,monospace;letter-spacing:.025em}.bottom-note span:last-child{text-align:right}.toast{position:fixed;left:50%;bottom:25px;z-index:5;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#d9ff8d;color:#11170d;padding:10px 14px;font-size:11px;font-weight:650;transition:.22s}.toast.show{opacity:1;transform:translate(-50%,0)}.webgl-error{position:absolute;z-index:2;inset:0;display:none;align-items:center;justify-content:center;padding:30px;text-align:center;color:#cad3d0;font-size:13px;line-height:1.6;background:#101519}.webgl-error.show{display:flex}
+  @media(min-width:1300px){.app{padding-left:54px;padding-right:54px}.viewport{height:590px}}
+  @media(max-width:900px){.app{padding:0 22px 32px}.workspace{grid-template-columns:minmax(0,1fr) 290px;gap:12px}.viewport{min-height:370px;height:53vw}.intro{padding-top:27px}.spec-tag{font-size:9px}}
+  @media(max-width:700px){.app{padding:0 14px 25px}.topbar{height:62px}.top-meta{gap:10px;font-size:9px}.intro{display:block;padding:25px 0 19px}.intro h1{font-size:34px}.spec-tag{display:inline-block;margin-top:15px}.workspace{grid-template-columns:1fr;gap:10px}.viewport{height:76vw;min-height:330px;max-height:470px}.rail{display:grid;grid-template-columns:1fr 1fr}.rail-section{padding:14px;border-right:1px solid var(--line)}.rail-section:nth-child(2){border-right:0}.history-section{grid-column:1/-1;min-height:95px}.build-spec{grid-column:1/-1}.bottom-note{font-size:8px}.stage-head{padding:0 12px}.stage-caption{left:12px;right:12px;bottom:11px}.view-chip{display:none}}
+  @media(max-width:420px){.top-meta .meta-extra{display:none}.intro h1{font-size:30px}.rail{grid-template-columns:1fr}.rail-section{border-right:0}.rail-section:nth-child(2){border-top:0}.history-section,.build-spec{grid-column:auto}.viewport{min-height:310px}.stage-head{height:43px}.stage-head .mono{font-size:9px}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark" aria-hidden="true">✳</div><div class="brand-name">CUBIC<span> / LAB</span></div></div>
+    <div class="top-meta"><span><i class="live-dot"></i>WebGL active</span><span class="meta-extra">3 × 3 × 3 / interactive</span></div>
+  </header>
+  <section class="intro" aria-labelledby="page-title">
+    <div><div class="eyebrow">A hands-on puzzle, with an undo button</div><h1 id="page-title">A cube with an exit plan.</h1><p>Turn it, scramble it, then let it find its way home.</p></div>
+    <div class="spec-tag"><b>BUILD BRIEF</b> &nbsp; THREE.JS · REAL PERSPECTIVE</div>
+  </section>
+  <main class="workspace">
+    <section class="stage" aria-label="Interactive three-dimensional Rubik's cube">
+      <div class="stage-head"><div class="stage-head-left"><span class="section-label">Live view</span><span class="tiny-divider"></span><span class="mono">27 CUBELETS</span></div><div id="status" class="status"><i class="dot"></i><span>SOLVED</span></div></div>
+      <div id="viewport" class="viewport">
+        <div id="webgl-error" class="webgl-error" role="status">Your browser could not start WebGL. Try enabling hardware acceleration or opening this page in a WebGL-capable browser.</div>
+        <div class="stage-caption"><div class="caption-left"><span class="caption-title">The self-solving cube</span><span class="caption-sub">Drag a sticker to turn · drag the space to orbit</span></div><span class="view-chip">PERSPECTIVE / ORBIT ENABLED</span></div>
+      </div>
+    </section>
+    <aside class="rail" aria-label="Cube controls">
+      <section class="rail-section">
+        <div class="rail-title"><h2>Run the cube</h2><span>01 / ACTIONS</span></div>
+        <div class="primary-actions">
+          <button id="scramble" class="btn btn-accent" type="button"><span class="button-label"><span class="button-icon" aria-hidden="true">⤨</span> Scramble</span></button>
+          <button id="solve" class="btn btn-solve" type="button" disabled><span class="button-label"><span class="button-icon" aria-hidden="true">↶</span> Self-solve</span></button>
+          <button id="reset" class="btn btn-reset" type="button">Reset to solved state</button>
+        </div>
+      </section>
+      <section class="rail-section">
+        <div class="rail-title"><h2>Move pad</h2><span>02 / MANUAL</span></div>
+        <div id="move-grid" class="move-grid" aria-label="Standard face turns"></div>
+        <p class="keyboard-hint"><kbd>U D L R F B</kbd> to turn &nbsp;·&nbsp; <kbd>Shift</kbd> inverse &nbsp;·&nbsp; <kbd>Alt</kbd> half turn</p>
+      </section>
+      <section class="rail-section history-section">
+        <div class="rail-title"><h2>Turn history</h2><div class="history-meta"><span id="move-count" class="count">0</span><span class="mono">&nbsp; MOVES</span></div></div>
+        <div id="history" class="history-list" aria-live="polite"><span class="history-empty">No turns yet. This is the solved state.</span></div>
+      </section>
+      <details class="build-spec" open>
+        <summary>Prompt notes / implemented</summary>
+        <ul>
+          <li><strong>Real 3D WebGL</strong>, not a flat drawing; orbit in perspective.</li>
+          <li>Dark graphite cubelets, softly beveled edges, small gaps.</li>
+          <li>Sticker drag turns a face; the background drag orbits the view.</li>
+          <li>U / D / L / R / F / B notation, inverse turns and a 25-move scramble.</li>
+          <li>Self-solve reverses the move sequence back to solved.</li>
+        </ul>
+      </details>
+    </aside>
+  </main>
+  <footer class="bottom-note"><span>CLICK-DRAG THE SCENE TO INSPECT · CUBIC / 01</span><span>LOCAL DEMO · NO ACCOUNT OR BACKEND REQUIRED</span></footer>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/RoundedBoxGeometry.js';
+
+const viewport = document.getElementById('viewport');
+const errorPanel = document.getElementById('webgl-error');
+const statusEl = document.getElementById('status');
+const historyEl = document.getElementById('history');
+const countEl = document.getElementById('move-count');
+const scrambleBtn = document.getElementById('scramble');
+const solveBtn = document.getElementById('solve');
+const resetBtn = document.getElementById('reset');
+const toastEl = document.getElementById('toast');
+const faces = ['U','D','L','R','F','B'];
+const spacing = 1.035;
+const faceColors = { U:0xf4f0df, D:0xf0d64b, F:0x3fae78, B:0x367fd1, R:0xd84d43, L:0xf08a3c };
+const axisByFace = { U:'y', D:'y', L:'x', R:'x', F:'z', B:'z' };
+const layerByFace = { U:1, D:-1, L:-1, R:1, F:1, B:-1 };
+const clockwiseSign = { U:-1, D:1, L:1, R:-1, F:-1, B:1 };
+let scene, camera, renderer, controls, pivot, raycaster, pointer;
+let cubelets = [], stickers = [], moveHistory = [], busy = false, drag = null, toastTimer;
+const cubeGroup = new THREE.Group();
+
+function showToast(message){
+  toastEl.textContent = message;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>toastEl.classList.remove('show'), 1900);
+}
+function setStatus(){
+  const label = statusEl.querySelector('span');
+  statusEl.classList.toggle('busy',busy);
+  statusEl.classList.toggle('unsolved',!busy && moveHistory.length>0);
+  label.textContent = busy ? 'TURNING' : moveHistory.length ? 'IN PROGRESS' : 'SOLVED';
+  scrambleBtn.disabled = busy;
+  solveBtn.disabled = busy || moveHistory.length===0;
+  resetBtn.disabled = busy || moveHistory.length===0;
+  document.querySelectorAll('.move-key').forEach(b=>b.disabled=busy);
+  countEl.textContent = String(moveHistory.length);
+  if(!moveHistory.length){historyEl.innerHTML='<span class="history-empty">No turns yet. This is the solved state.</span>';return;}
+  const recent = moveHistory.slice(-12);
+  historyEl.innerHTML = recent.map((move,i)=>`<span class="move-chip${i===recent.length-1?' latest':''}">${move.replace("'",'′')}</span>`).join('');
+}
+function roundedStickerGeometry(){return new RoundedBoxGeometry(.77,.77,.035,3,.055);}
+function addSticker(cubie, face, geo){
+  const material = new THREE.MeshStandardMaterial({color:faceColors[face],roughness:.39,metalness:.015});
+  const mesh = new THREE.Mesh(geo,material);
+  const d=.508;
+  if(face==='F'){mesh.position.z=d;}
+  if(face==='B'){mesh.position.z=-d;mesh.rotation.y=Math.PI;}
+  if(face==='R'){mesh.position.x=d;mesh.rotation.y=Math.PI/2;}
+  if(face==='L'){mesh.position.x=-d;mesh.rotation.y=-Math.PI/2;}
+  if(face==='U'){mesh.position.y=d;mesh.rotation.x=-Math.PI/2;}
+  if(face==='D'){mesh.position.y=-d;mesh.rotation.x=Math.PI/2;}
+  mesh.userData={isSticker:true,face};
+  mesh.castShadow=true;mesh.receiveShadow=true;
+  cubie.add(mesh);stickers.push(mesh);
+}
+function makeCube(){
+  for(const old of cubelets){if(old.parent)old.parent.remove(old);}
+  cubelets=[];stickers=[];cubeGroup.clear();
+  const bodyGeo=new RoundedBoxGeometry(.985,.985,.985,3,.065);
+  const stickerGeo=roundedStickerGeometry();
+  const bodyMat=new THREE.MeshStandardMaterial({color:0x20262a,roughness:.52,metalness:.12});
+  for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++){
+    const cubie=new THREE.Group();
+    cubie.position.set(x*spacing,y*spacing,z*spacing);
+    cubie.userData.home={x,y,z};
+    const body=new THREE.Mesh(bodyGeo,bodyMat);
+    body.castShadow=true;body.receiveShadow=true;cubie.add(body);
+    if(y===1)addSticker(cubie,'U',stickerGeo);
+    if(y===-1)addSticker(cubie,'D',stickerGeo);
+    if(x===-1)addSticker(cubie,'L',stickerGeo);
+    if(x===1)addSticker(cubie,'R',stickerGeo);
+    if(z===1)addSticker(cubie,'F',stickerGeo);
+    if(z===-1)addSticker(cubie,'B',stickerGeo);
+    cubeGroup.add(cubie);cubelets.push(cubie);
+  }
+  scene.add(cubeGroup);
+}
+function init(){
+  try{
+    scene=new THREE.Scene();scene.background=new THREE.Color(0x0e1316);scene.fog=new THREE.Fog(0x0e1316,12,23);
+    camera=new THREE.PerspectiveCamera(35,1,.1,100);camera.position.set(5.6,4.4,6.5);
+    renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
+    renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.16;
+    viewport.insertBefore(renderer.domElement,viewport.firstChild);
+    renderer.domElement.setAttribute('aria-label','Interactive 3D cube. Drag the background to orbit, or drag a non-center sticker to turn a face.');
+    renderer.domElement.tabIndex=0;
+    controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.07;controls.minDistance=5.2;controls.maxDistance=13;controls.maxPolarAngle=Math.PI*.91;controls.target.set(0,0,0);controls.update();
+    raycaster=new THREE.Raycaster();pointer=new THREE.Vector2();
+    scene.add(new THREE.HemisphereLight(0xc9ded8,0x202327,2.25));
+    const key=new THREE.DirectionalLight(0xfff4dc,3.1);key.position.set(4.5,7,5);scene.add(key);
+    const fill=new THREE.DirectionalLight(0x93c3d4,1.1);fill.position.set(-5,2,-4);scene.add(fill);
+    const rim=new THREE.PointLight(0xc6f36a,13,12,2);rim.position.set(-3,-1,4);scene.add(rim);
+    const floor=new THREE.Mesh(new THREE.CircleGeometry(5,80),new THREE.MeshStandardMaterial({color:0x11181a,roughness:.9,metalness:.05}));
+    floor.rotation.x=-Math.PI/2;floor.position.y=-2.55;floor.receiveShadow=true;scene.add(floor);
+    const grid=new THREE.GridHelper(12,24,0x273237,0x1b2529);grid.position.y=-2.53;grid.material.transparent=true;grid.material.opacity=.28;scene.add(grid);
+    makeCube();
+    const resize=()=>{const w=viewport.clientWidth,h=viewport.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false);};
+    new ResizeObserver(resize).observe(viewport);resize();
+    renderer.setAnimationLoop(()=>{controls.update();renderer.render(scene,camera);});
+    installPointerHandling();
+    setStatus();
+  }catch(err){console.error(err);errorPanel.classList.add('show');}
+}
+function moveAxis(face){return axisByFace[face];}
+function moveAngle(move){
+  const face=move[0],suffix=move.slice(1);
+  const amount=suffix==='2'?2:suffix==="'"?-1:1;
+  return clockwiseSign[face]*amount*Math.PI/2;
+}
+function invert(move){if(move.endsWith('2'))return move;return move.endsWith("'")?move[0]:move+"'";}
+function animateTurn(move,duration=170){
+  return new Promise(resolve=>{
+    const face=move[0],axis=moveAxis(face),layer=layerByFace[face],angle=moveAngle(move);
+    const selected=cubelets.filter(c=>Math.round(c.position[axis]/spacing)===layer);
+    pivot=new THREE.Group();scene.add(pivot);
+    selected.forEach(c=>pivot.attach(c));
+    const start=performance.now();
+    function tick(now){
+      const t=Math.min(1,(now-start)/duration);
+      const eased=1-Math.pow(1-t,3);
+      pivot.rotation.set(0,0,0);pivot.rotation[axis]=angle*eased;
+      if(t<1){requestAnimationFrame(tick);return;}
+      pivot.rotation[axis]=angle;
+      selected.forEach(c=>scene.attach(c));
+      scene.remove(pivot);pivot=null;
+      for(const c of selected){
+        c.position.set(Math.round(c.position.x/spacing)*spacing,Math.round(c.position.y/spacing)*spacing,Math.round(c.position.z/spacing)*spacing);
+        c.quaternion.normalize();
+      }
+      resolve();
+    }
+    requestAnimationFrame(tick);
+  });
+}
+async function runSequence(moves,{record=true,clearAfter=false,duration=170,message=''}={}){
+  if(busy||!moves.length)return;
+  busy=true;setStatus();
+  if(message)showToast(message);
+  try{
+    for(let i=0;i<moves.length;i++){
+      await animateTurn(moves[i],duration);
+      if(record){moveHistory.push(moves[i]);setStatus();}
+    }
+  }finally{
+    if(clearAfter)moveHistory=[];
+    busy=false;setStatus();
+  }
+}
+function randomScramble(){
+  const moves=[];let previous='';
+  const amounts=['',"'",'2'];
+  while(moves.length<25){const face=faces[Math.floor(Math.random()*faces.length)];if(face===previous)continue;previous=face;moves.push(face+amounts[Math.floor(Math.random()*amounts.length)]);}
+  runSequence(moves,{record:true,duration:118,message:'25 random turns · watch the cube move'});
+}
+function selfSolve(){
+  if(!moveHistory.length||busy)return;
+  const solution=moveHistory.slice().reverse().map(invert);
+  runSequence(solution,{record:false,clearAfter:true,duration:140,message:`Reversing ${solution.length} move${solution.length===1?'':'s'} to solved`});
+}
+function resetCube(){
+  if(busy)return;
+  scene.remove(cubeGroup);moveHistory=[];makeCube();controls.reset();setStatus();showToast('Cube reset to solved state');
+}
+function installPointerHandling(){
+  const canvas=renderer.domElement;
+  canvas.addEventListener('pointerdown',event=>{
+    if(busy)return;
+    const rect=canvas.getBoundingClientRect();
+    pointer.set(((event.clientX-rect.left)/rect.width)*2-1,-((event.clientY-rect.top)/rect.height)*2+1);
+    raycaster.setFromCamera(pointer,camera);
+    const hit=raycaster.intersectObjects(stickers,false).find(x=>x.object.userData.isSticker);
+    if(!hit)return;
+    const sticker=hit.object,face=sticker.userData.face,cubie=sticker.parent;
+    const home=cubie.userData.home;
+    const centerCount=(home.x===0?1:0)+(home.y===0?1:0)+(home.z===0?1:0);
+    if(centerCount===2){showToast('Center stickers stay anchored — drag a corner or edge sticker.');return;}
+    drag={id:event.pointerId,face,x:event.clientX,y:event.clientY};
+    controls.enabled=false;canvas.setPointerCapture(event.pointerId);event.preventDefault();event.stopImmediatePropagation();
+  },true);
+  canvas.addEventListener('pointerup',event=>{
+    if(!drag||event.pointerId!==drag.id)return;
+    const dx=event.clientX-drag.x,dy=event.clientY-drag.y;
+    const clockwise=Math.abs(dx)>Math.abs(dy)?dx>=0:dy>=0;
+    const face=drag.face;drag=null;controls.enabled=true;
+    const move=face+(clockwise?'':"'");
+    runSequence([move],{record:true,duration:170});
+    event.preventDefault();event.stopImmediatePropagation();
+  },true);
+  canvas.addEventListener('pointercancel',()=>{drag=null;controls.enabled=true;},true);
+}
+function makeMovePad(){
+  const grid=document.getElementById('move-grid');
+  for(const face of faces){
+    for(const suffix of ['',"'"]){
+      const notation=face+suffix,button=document.createElement('button');
+      button.type='button';button.className='move-key';button.setAttribute('aria-label',`Turn ${face} face ${suffix?"counterclockwise":"clockwise"}`);
+      button.innerHTML=`${face}${suffix?'<small>prime</small>':'<small>clockwise</small>'}`;
+      button.addEventListener('click',()=>runSequence([notation],{record:true}));grid.appendChild(button);
+    }
+  }
+}
+scrambleBtn.addEventListener('click',randomScramble);
+solveBtn.addEventListener('click',selfSolve);
+resetBtn.addEventListener('click',resetCube);
+document.addEventListener('keydown',event=>{
+  if(event.repeat||event.ctrlKey||event.metaKey)return;
+  const target=event.target;
+  if(target instanceof HTMLElement&&(target.isContentEditable||['INPUT','TEXTAREA','SELECT'].includes(target.tagName)))return;
+  const face=event.key.toUpperCase();if(!faces.includes(face)||busy)return;
+  event.preventDefault();const move=face+(event.altKey?'2':event.shiftKey?"'":'');runSequence([move],{record:true});
+});
+makeMovePad();init();
+</script>
+</body>
+</html>
