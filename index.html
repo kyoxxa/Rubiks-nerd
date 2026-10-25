@@ -73,8 +73,15 @@
   <footer class="bottom-note"><span>CLICK-DRAG THE SCENE TO INSPECT · CUBIC / 01</span><span>LOCAL DEMO · NO ACCOUNT OR BACKEND REQUIRED</span></footer>
 </div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
 <script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import * as THREE from 'three';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
 import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/RoundedBoxGeometry.js';
 
